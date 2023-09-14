@@ -58,6 +58,8 @@ def check_next_instruction(next_instruction):
         mkdisk(next_instruction)
     if next_instruction[0].lower() == 'rmdisk':
         rmdisk(next_instruction)
+    if next_instruction[0].lower() == 'fdisk':
+        fdisk(next_instruction)
 
 def mkdisk(instruction):
     #Removes the first element "mkdisk"
@@ -105,15 +107,27 @@ def new_disk(size: int, path: str, fit: str, unit: str):
 
     size_in_bytes = mbr.size.to_bytes(4, byteorder = 'big')
     print(size_in_bytes)
-    #original_value = int.from_bytes(size_in_bytes, byteorder='big')
 
-    #Imprimir el valor original
     date_in_bytes = mbr.date.encode('UTF-8')
     print(path)
     signature_in_bytes = mbr.signature.to_bytes(4, byteorder = 'big')
     fit_in_bytes = mbr.fit.encode('UTF-8')
     
     print(size_in_bytes, date_in_bytes, signature_in_bytes, fit_in_bytes)
+
+    mbr_part_status = mbr.partition1.part_status.encode('UTF-8')
+    mbr_part_type = mbr.partition1.part_type.encode('UTF-8')
+    mbr_part_fit = mbr.partition1.part_fit.encode('UTF-8')
+    mbr_part_start = mbr.partition1.part_start.to_bytes(4, byteorder = 'big')
+    mbr_size = mbr.partition1.part_size.to_bytes(4, byteorder = 'big')
+    mbr_name = mbr.partition1.part_name.encode('UTF-8')
+    array_of_bytes = bytearray()
+    array_of_bytes += mbr_part_status
+    array_of_bytes += mbr_part_type
+    array_of_bytes += mbr_part_fit
+    array_of_bytes += mbr_part_start
+    array_of_bytes += mbr_size
+    array_of_bytes += mbr_name
 
     if os.path.exists(path):
         print("Ya existe un disco con el mismo nombre")
@@ -131,34 +145,22 @@ def new_disk(size: int, path: str, fit: str, unit: str):
         file.write(signature_in_bytes)
         file.seek(27)
         file.write(fit_in_bytes)
+        #Continuar desde 28
+        file.seek(28)
+        file.write(array_of_bytes)
+        file.seek(55)
+        file.write(array_of_bytes)
+        file.seek(82)
+        file.write(array_of_bytes)
+        file.seek(109)
+        file.write(array_of_bytes)
+        
+        #136 final del mbr 27 por cada mbr
+
+        
         file.close()
     
-    with open(path, 'rb') as file:
-        size_bytes = file.read(4)
-        if len(size_bytes) != 4:
-            print("No se pudieron leer los primeros 4 bytes.")
-        size = int.from_bytes(size_bytes, byteorder='big')
-        
-        date_bytes = file.read(19)
-        if len(date_bytes) != 19:
-            print("No se pudieron leer los siguientes 19 bytes.")
-        date = date_bytes.decode('utf-8')
-        
-        signature_bytes = file.read(4)
-        if len(signature_bytes) != 4:
-            print("No se pudieron leer los siguientes 4 bytes.")
-        signature = int.from_bytes(signature_bytes, byteorder='big')
-        
-        fit_bytes = file.read(1)
-        if len(fit_bytes) != 1:
-            print("No se pudo leer el último byte.")
-        fit = fit_bytes.decode('utf-8')
-        
-        print("Datos recuperados del disco:")
-        print(f"Tamaño: {size}")
-        print(f"Fecha y hora: {date}")
-        print(f"Firma (entero): {signature}")
-        print(f"Ajuste: {fit}")
+    mbr.read_mbr(path)
     
 
 
@@ -173,6 +175,62 @@ def delete_disk(path: str):
     except Exception as e:
         print(f"Se produjo un error al eliminar el archivo: {str(e)}")
 
+def fdisk(instruction):
+    print("LOgramos entrar")
+    print(instruction)
+    size = 0
+    path = ""
+    fit = 'w'
+    unit = 'k'
+    delete = 0
+    type = 'P'
+    add = 0
+    instruction.pop(0)
+    for i in range(len(instruction)):
+        instruction[i] = instruction[i].replace('-', '')
+        instruction_set = instruction[i].split('=')
+        if instruction_set[0].lower() == 'path':
+            path = return_path_with_correct_user(instruction_set[1])
+        if instruction_set[0].lower() == 'size':
+            size = instruction_set[1]
+        if instruction_set[0].lower() == 'name':
+            name = instruction_set[1]
+        if instruction_set[0].lower() == 'unit':
+            unit = instruction_set[1]
+        if instruction_set[0].lower() == 'type':
+            type = instruction_set[1]
+        if instruction_set[0].lower() == 'fit':
+            fit = instruction_set[1]
+        if instruction_set[0].lower() == 'delete':
+            delete = instruction_set[1]
+        if instruction_set[0].lower() == 'add':
+            new_add = instruction_set[1]
+    new_partition(size, path, name, unit, type, fit, delete, add)
+    
+def new_partition(size: str, path: str, name: str, unit: str, type: str, fit: str, delete: str, new_add: int):
+    size = int(size)
+    if unit.lower() == 'k':
+        no_bytes = size * 1024 
+        print(no_bytes) 
+    elif unit.lower() == 'm':
+        no_bytes = size * 1024 * 1024
+        print(no_bytes) 
+    elif unit.lower() == 'b':
+        no_bytes = size
+        print(no_bytes)
+    else:
+        raise ValueError("El tipo debe ser 'k' o 'm'")
+    if delete != 0:
+        print("Se procedera eliminar {path}, la particion {name}")
+        return
+    if new_add != 0:
+        print("Se procedera a agregar {new_add} en la ruta: {path} con el nombre: {name}")
+        return
+    
+    mbr = MBR(0,0,0,0)
+    mbr.read_mbr(path)
+    mbr.insert_partition('B', type, fit, 50, size, name, path)
+    
 path = 'execute -path=/home/chocs/Desktop/Calificacion.adsj'
 
 print(get_file_name('home/chocs/Desktop/Calificacion.adsj'))
