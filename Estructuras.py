@@ -12,18 +12,25 @@ class MBR():
         self.partition4 = partition('E','I','I',0,0,'0000000000000000')
         self.actual_start = 137
 
+    def available_space(self):
+        space = 137 + self.partition1.part_size + self.partition2.part_size + self.partition3.part_size + self.partition4.part_size 
+        available_space = self.size - space
+        return available_space
     def look_on_start(self):
         if self.partition1.part_status.upper() == 'E':
             print("Empieza en 137")
             return
         if self.partition2.part_status.upper() == 'E':
-            print("Empieza por particion 2")
+            self.actual_start = (137 + self.partition1.part_size)
+            print(f"Empieza por particion 2 {self.actual_start}")
             return
-        if self.partition1.part_status.upper() == 'E':
-            print("Empieza en particion 3")
+        if self.partition3.part_status.upper() == 'E':
+            self.actual_start = (137 + self.partition1.part_size + self.partition2.part_size)
+            print(f"Empieza en particion 3 {self.actual_start}")
             return
-        if self.partition1.part_status.upper() == 'E':
-            print("Empieza en particion4")
+        if self.partition4.part_status.upper() == 'E':
+            self.actual_start = (137 + self.partition1.part_size + self.partition2.part_size + self.partition3.part_size)
+            print(f"Empieza en particion4 {self.actual_start}")
             return
 
     def write_mbr_for_partitions(self, path):
@@ -234,12 +241,12 @@ class MBR():
             if not self.is_one_extended_partition_on_disk():
                 print("Ya existe una particion extendida en el disco")
                 return
-        self.look_on_start()
-            
         if len(part_name) < 16:
         # Rellena con espacios en blanco a la derecha hasta alcanzar una longitud de 16
             part_name = part_name.ljust(16)
         #Status E = Empty, B = Busy and unmounted, D = Deleted, M = Busy and mounted
+        self.look_on_start()
+        part_start = self.actual_start 
         if self.partition1.part_status.lower() == 'e':
             self.partition1.part_status = part_status
             self.partition1.part_type = part_type
@@ -248,7 +255,6 @@ class MBR():
             self.partition1.part_size = part_size
             self.partition1.part_name = part_name
             self.write_mbr_for_partitions(path)
-            self.read_mbr(path)
             return
         if self.partition2.part_status.lower() == 'e':
             self.partition2.part_status = part_status
@@ -258,7 +264,6 @@ class MBR():
             self.partition2.part_size = part_size
             self.partition2.part_name = part_name
             self.write_mbr_for_partitions(path)
-            self.read_mbr(path)
             return
         if self.partition3.part_status.lower() == 'e':
             self.partition3.part_status = part_status
@@ -268,7 +273,6 @@ class MBR():
             self.partition3.part_size = part_size
             self.partition3.part_name = part_name
             self.write_mbr_for_partitions(path)
-            self.read_mbr(path)
             return
         if self.partition4.part_status.lower() == 'e':
             self.partition4.part_status = part_status
@@ -278,7 +282,6 @@ class MBR():
             self.partition4.part_size = part_size
             self.partition4.part_name = part_name
             self.write_mbr_for_partitions(path)
-            self.read_mbr(path)
             return
         print("No hay mas particiones disponibles")
     
@@ -344,8 +347,6 @@ class MBR():
         bytes = bytes([0] * size)
         return bytes
             
-
-
 
 class partition():
     def __init__(self, part_status, part_type, part_fit, part_start, part_size, part_name):

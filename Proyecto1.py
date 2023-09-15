@@ -225,16 +225,16 @@ def new_partition(size: str, path: str, name: str, unit: str, type: str, fit: st
     else:
         raise ValueError("El tipo debe ser 'k' o 'm'")
     if delete != 0:
-        print("Se procedera eliminar {path}, la particion {name}")
+        print(f"Se procedera eliminar {path}, la particion {name}")
         return
     if new_add != 0:
-        print("Se procedera a agregar {new_add} en la ruta: {path} con el nombre: {name}")
+        print(f"Se procedera a agregar {new_add} en la ruta: {path} con el nombre: {name}")
         return
     
     mbr = MBR(0,0,0,0)
     mbr.read_mbr(path)
-    mbr.insert_partition('B', type, fit, 50, size, name, path)
-    
+    mbr.insert_partition('B', type, fit, 50, no_bytes, name, path)
+    mbr.look_on_start()
 path = 'execute -path=/home/chocs/Desktop/Calificacion.adsj'
 
 print(quit_quote("/home/mis discos/Disco4.dsk"))
