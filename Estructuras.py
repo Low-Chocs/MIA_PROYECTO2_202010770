@@ -10,6 +10,21 @@ class MBR():
         self.partition2 = partition('E','I','I',0,0,'0000000000000000')
         self.partition3 = partition('E','I','I',0,0,'0000000000000000')
         self.partition4 = partition('E','I','I',0,0,'0000000000000000')
+        self.actual_start = 137
+
+    def look_on_start(self):
+        if self.partition1.part_status.upper() == 'E':
+            print("Empieza en 137")
+            return
+        if self.partition2.part_status.upper() == 'E':
+            print("Empieza por particion 2")
+            return
+        if self.partition1.part_status.upper() == 'E':
+            print("Empieza en particion 3")
+            return
+        if self.partition1.part_status.upper() == 'E':
+            print("Empieza en particion4")
+            return
 
     def write_mbr_for_partitions(self, path):
 
@@ -219,6 +234,7 @@ class MBR():
             if not self.is_one_extended_partition_on_disk():
                 print("Ya existe una particion extendida en el disco")
                 return
+        self.look_on_start()
             
         if len(part_name) < 16:
         # Rellena con espacios en blanco a la derecha hasta alcanzar una longitud de 16
@@ -339,5 +355,12 @@ class partition():
         self.part_start = part_start
         self.part_size = part_size
         self.part_name = part_name
-
-
+    
+class EBR():
+    def __init__(self, part_status, part_fit, part_start, part_size, part_next, part_name):
+        self.part_status = part_status
+        self.part_fit = part_fit
+        self.part_start = part_start
+        self.part_size = part_size
+        self.part_next = part_next
+        self.part_name = part_name

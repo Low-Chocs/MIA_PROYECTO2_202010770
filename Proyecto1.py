@@ -39,6 +39,10 @@ def return_path_with_correct_user(path: str):
         return path
     return path.replace('user', os.getlogin())
 
+def quit_quote(path: str):
+    path.replace("\"", "")
+    return path
+
 def check_file_extension(path):
     path_to_check = path.split('/')
     last_index = len(path_to_check) - 1
@@ -233,6 +237,7 @@ def new_partition(size: str, path: str, name: str, unit: str, type: str, fit: st
     
 path = 'execute -path=/home/chocs/Desktop/Calificacion.adsj'
 
+print(quit_quote("/home/mis discos/Disco4.dsk"))
 print(get_file_name('home/chocs/Desktop/Calificacion.adsj'))
 
 start()
