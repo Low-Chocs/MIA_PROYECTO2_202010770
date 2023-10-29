@@ -1,0 +1,20 @@
+
+        digraph lista {
+   
+        rankdir=LR;
+        graph[label="Disco 202010770"];
+
+
+        node [shape=box, style=filled, fillcolor=white]; 
+
+        inicio[label="MBR 0.00011991746354811263%"];
+        
+                partition1[label="P1 I 0000000000000000 24.752475247524753%"];
+                
+                partition2[label="P2 P Part2            24.752475247524753%"];
+                
+                partition3[label="P1 P Part3            24.752475247524753%"];
+                
+                partition4[label="P4 P Part4            24.752475247524753%"];
+                   
+                    libre[label="Libre  Libre 0.9899696501174776%"];  }
